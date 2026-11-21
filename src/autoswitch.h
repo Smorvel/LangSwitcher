@@ -1,8 +1,7 @@
 // autoswitch.h — опциональное авто-переключение раскладки (русская <-> английская) и словарь Words.txt.
 // Включается строкой AutoSwitch=1 в LangSwitch.ini. Словарь Words.txt работает и при AutoSwitch=0, если в нём есть слова.
-// Подключается из main.cpp одной директивой #include и использует его внутренние функции, поэтому файл не
-// компилируется отдельно. Чтобы убрать функцию, удалите этот файл и правки в main.cpp
-// (ConvertBuffer: параметры forceStart/forceTarget/forceEnd, #include перед ConvertThread, WinMain: AsSetup, AsManualStart).
+// Подключается из main.cpp директивой #include и использует его внутренние функции, поэтому файл не компилируется
+// отдельно. Если удалить этот файл, программа собирается без авто-переключения (см. __has_include в main.cpp).
 #pragma once
 
 // определены в main.cpp ниже места подключения
@@ -19,10 +18,7 @@ static const wchar_t* kAsBigEn =
     L"ld ry mp fe bl ab gh ty op wo sa ay ex ke fr oo av ag if ap gr od bo sp rd do uc bu ei ov by rm ep tt oc fa ef cu "
     L"rn sc gi da yo cr cl du ga qu ue ff ba ey ls va um pp ua up lu go ht ru ug ds lt pi rc rr eg au ck ew bi br tl ms "
     L"ye ud mb ip ub oi oa ok ob ib ak ik ph lk lf lp lm rk rb rg rl rv rp nk nn nl nm gn gs gl hy hr kn kl ks ki ku ko "
-    L"ka za ze zi zo xt xp yp yr ys yt yn ym ur us ut ve vi vo eb eg ej ek ep ew ez ob oj ok ow oz uf ug uk ul um un up "
-    L"wn wr wl ws wd rw ww yb yc yd yf yg yl yw yi ya yu ax ay az aw ah ab ac af ag ak ap aq au av az ib id if ig ik "
-    L"ix iz oh ox oy uy uz ym dl bs fs ds ps pt sk sl sm sn sw tc tw ft lt lv lb rf gm gt hm hn ml mn sy sr my ny dy "
-    L"cy gy fy xe xi xa xo xu ja jo je ju zy zz rh";
+    L"ka za ze zi zo xt xp yp yr ys yt yn ym ur us ut ve vi vo wn wr ws";
 
 static const wchar_t* kAsBigRu =
     L"ст но то на ен ов ни ра во ко ол ор ро по ре ан ер ос ти ли ет ва ль ем ат ал ла ка ть ог го ел ны ск ин ие ой ий "
@@ -35,11 +31,16 @@ static const wchar_t* kAsBigRu =
     L"ех еж ез ел еп ер ес еч еш ещ ёт ёл ён ёр им ин ио ип ич иш кн кс кт км лб лг лж лк лм лн лп лс лт лч лш мб мг мм "
     L"мп мс мт мч мя нб нв нж нз нк нл нм нн нп нр нц нч нш ох оц ощ ух уц уш ущ юб юв юг юж юк юл юм юн юр юс ют юх яд "
     L"яж яй ям яп яр яс яц яч яш ои ио еи ею аю уе уи ёс ёв ёз ёк ёж ьи ьё ьо ьу ья ъе ъё ъя ъю гу гд кё шь шё щё чё жё чь "
-    L"ыс ыр ыд ыб ыг ыж ык ыч ыш ыз ыю бя бю бь бё вя вё вю вь гя гю дя дю дё дь зя зю зь кя кю кь лё лю мя мю мь мё пя пю "
-    L"пь пё рё рю рь сё сю ся сь тё тю тя ть фя фю фь хё хю хя цю цё ща щу щё ое ио аи еа оа уа ри ра ря "
-    L"бт вв вг вз вп вх вц гв дв дг дж дз дм дп дс дт дц жж жк жм жр зг зл зс кв кц лд лз лл лх лц мд мк мл мн мр мц мш нж "
-    L"нн нц пн пс пт пц пч рб рв рл рм рп рх рч рш сб сг сд сж сз сх сц сч тл тм тс тх тц фл хв хл хм хн хр хт цв чк шк шт щн "
-    L"ео уо иа ия иу ый ыми ид ще";
+    L"ыс ыр ыд ыб ыг ыж ык ыч ыш ыз бя бю бь бё вя вё вю вь гя гю дя дю дё дь зя зю зь кя кю кь лё лю мя мю мь мё пя пю "
+    L"пь пё рё рю рь сё сю ся сь тё тю тя ть фя фю фь хё хю хя цю цё ща щу щё аи еа оа уа ри ра ря "
+    L"бт вв вг вз вп вх вц гв дв дг дж дз дм дп дс дт дц жж жк жм жр зг зл зс кв кц лд лз лл лх лц мд мк мл мр мц мш нн "
+    L"пн пс пт пц пч рб рв рл рм рп рх рч рш сб сг сд сж сз сх сц сч тл тм тс тх тц фл хв хл хм хн хр хт цв чк шк шт ид ще";
+
+// английские слова допустимых английских согласных групп (для оценки пар не из таблицы)
+static const wchar_t* kAsEnCc =
+    L"bl br bs bt ck cl cr cs ct dg dl dm dr ds fl fr fs ft gl gm gn gr gs kl kn kr ks lb lc ld lf lg lk lm lp ls lt lv "
+    L"mb mn mp ms mt nc nd nf ng nk ns nt nv pl pn pr ps pt rb rc rd rf rg rk rl rm rn rp rs rt rv sc sk sl sm sn sp sq "
+    L"st sw tc tr ts tw dw kw gw";
 
 // короткие служебные слова (до 3 букв): по буквосочетаниям такие слова оценить нельзя
 static const wchar_t* kAsFuncEn =
@@ -52,14 +53,12 @@ static const wchar_t* kAsFuncRu =
     L"уже или для мне нет вот тут там при без над под про чем кто где так еще ещё это что как вам вас нам нас мой наш "
     L"ваш был ага ого ура оно ему ней них ним сам сей тот той эта эти";
 
-// сокращения, расширения файлов, технические термины: допустимы по-английски, но по-русски их тоже пишут
-// (пдф, апк), поэтому сами по себе без контекста не переключаются
+// сокращения, расширения файлов, технические термины: по-английски допустимы, а набранные кириллицей это бессмыслица
 static const wchar_t* kAsTechEn =
     L"vs pc tv id ip os ui ux hr pr qa ai ml db js ts pm cv ps mr dr ms st nd rd th ft kg km cm mm gb mb kb tb hz "
-    L"pdf api url sql css cpu gpu ram rom usb ssd hdd png jpg jpeg gif svg bmp ico psd dvd ceo faq fyi lol omg btw wtf vip "
-    L"vpn app web org com dev bot bug git "
-    L"apk txt exe dll zip rar doc docx xls xlsx ppt pptx csv rtf odt iso bat cmd ini cfg tmp sys bin msi ipa dmg deb "
-    L"rpm html htm php xml json yaml yml java cpp lua bash mov wav flac ogg webm webp mkv avi tar "
+    L"pdf api url sql css cpu gpu ram rom usb ssd hdd png jpg jpeg gif svg bmp ico psd dvd faq fyi lol omg btw wtf vip "
+    L"vpn web app dev bot bug git apk txt exe dll zip rar doc docx xls xlsx ppt pptx csv rtf odt iso bat cmd ini tmp sys "
+    L"bin msi ipa dmg deb rpm html htm php xml json yaml yml java cpp lua bash mov wav flac ogg webm webp mkv avi tar "
     L"http https www ftp ssh ssl tls dns tcp udp lan wan gui cli sdk ide wifi bios ios mac npm pip";
 
 static void AsFillBigrams(std::set<unsigned>& dst, const wchar_t* list) {
@@ -90,8 +89,7 @@ static bool AsHasBigram(int lang, wchar_t a, wchar_t b) {
         AsFillBigrams(ru, kAsBigRu);
         init = true;
     }
-    const unsigned key = ((unsigned)a << 16) | (unsigned)b;
-    return (lang == AL_EN ? en : ru).count(key) != 0;
+    return (lang == AL_EN ? en : ru).count(((unsigned)a << 16) | (unsigned)b) != 0;
 }
 
 static bool AsInFunc(int lang, const std::wstring& w) {
@@ -157,39 +155,94 @@ static int AsLayoutLang(HKL h) {
 }
 
 // ---------------------------------------------------------------- оценка слова
-// Результат оценки слова в языке: rate 0..100, bad — слово не может быть словом языка, hard — есть невозможное
-// сочетание (а не просто нет гласных: без гласных бывают сокращения)
-struct AsE {
-    int rate;
-    bool bad;
-    bool hard;
-    int letters;
-    AsE() : rate(0), bad(false), hard(false), letters(0) {}
-};
-
-static bool AsPairImpossible(int lang, wchar_t a, wchar_t b) {
-    if (lang == AL_EN) {
-        static const wchar_t* bad[] = {L"jq", L"qj", L"qz", L"zq", L"xq", L"qx", L"vq", L"qv", L"wq", L"jx",
-                                       L"xj", L"jz", L"zj", L"vx", L"xv", L"zx", L"xz", L"vj", L"jv"};
-        for (const wchar_t* p : bad) {
-            if (a == p[0] && b == p[1]) return true;
-        }
-        return false;
+// Список пар вида "ab cd ef" (ровно по два символа через пробел)
+static bool AsListHas(const wchar_t* list, wchar_t a, wchar_t b) {
+    for (const wchar_t* p = list; p[0] && p[1]; p += 3) {
+        if (p[0] == a && p[1] == b) return true;
+        if (!p[2]) break;
     }
-    if (b == L'ь' && AsVowel(lang, a)) return true;
-    if (b == L'ъ' && AsVowel(lang, a)) return true;
-    if (a == L'ъ' && !wcschr(L"еёюя", b)) return true;
-    if (a == L'ь' && wcschr(L"ыэъь", b)) return true;
-    if (wcschr(L"жшчщгкх", a) && b == L'ы') return true;
-    if (wcschr(L"жшчщ", a) && b == L'я') return true;
     return false;
 }
 
-// Вес пары букв: 100 — частая, 70 — допустимая (чередование гласной и согласной), 40 — редкая
-static int AsPairWeight(int lang, wchar_t a, wchar_t b) {
-    if (AsHasBigram(lang, a, b)) return 100;
-    return AsVowel(lang, a) != AsVowel(lang, b) ? 70 : 40;
+// Класс пары букв по правилам языка: 0 — невозможна, 1 — редкая, 2 — допустимая
+static int AsRuPair(wchar_t a, wchar_t b) {
+    const bool va = AsVowel(AL_RU, a), vb = AsVowel(AL_RU, b);
+    if (b == L'ь') return (va || a == L'ь' || a == L'ъ' || a == L'й') ? 0 : 2;
+    if (b == L'ъ') return (va || a == L'ь' || a == L'ъ' || a == L'й') ? 0 : 1;
+    if (a == L'ъ') return wcschr(L"еёюя", b) ? 2 : 0;
+    if (a == L'ь') {
+        if (vb) return wcschr(L"еёюяио", b) ? 2 : 0;
+        return b == L'й' ? 0 : 2;
+    }
+    if (a == L'ы') return vb ? (b == L'е' ? 2 : 0) : 2;
+    if (b == L'ы') {
+        if (va) return 0;
+        if (wcschr(L"жшчщ", a)) return 0;
+        if (wcschr(L"гкх", a)) return 1;
+        return 2;
+    }
+    if (b == L'э') return 1;
+    if (a == L'э') return vb ? 1 : 2;
+    if (b == L'й') return va ? 2 : 0;
+    if (a == L'й') return b == L'й' ? 0 : 2;
+    if (va && vb) return 1;
+    if (va) return 2;
+    if (vb) {  // согласная + гласная
+        if (wcschr(L"чщ", a) && wcschr(L"яю", b)) return 0;
+        if (wcschr(L"жш", a) && b == L'я') return 0;
+        if (wcschr(L"жш", a) && b == L'ю') return 1;
+        return 2;
+    }
+    // согласная + согласная
+    if (a == b) return wcschr(L"лнсмжтрдб", a) ? 1 : 0;
+    if (a == L'щ') return 0;
+    if (b == L'щ') return wcschr(L"бнтр", a) ? 1 : 0;
+    if (wcschr(L"жшчц", a) && wcschr(L"жшчц", b)) return 0;
+    if (a == L'ц') return wcschr(L"вкнт", b) ? 2 : 1;
+    if (a == L'ч') return wcschr(L"ткнв", b) ? 2 : 1;
+    if (a == L'ш') return wcschr(L"кнтлмвпр", b) ? 2 : 1;
+    if (a == L'ж') return wcschr(L"дгжкнмвр", b) ? 2 : 1;
+    if (a == L'х') return wcschr(L"влмнрткс", b) ? 2 : 1;
+    if (a == L'ф') return wcschr(L"лртксн", b) ? 2 : 1;
+    return 1;
 }
+
+static int AsEnPair(wchar_t a, wchar_t b) {
+    const bool va = AsVowel(AL_EN, a), vb = AsVowel(AL_EN, b);
+    if (a == L'q') return b == L'u' ? 2 : 0;
+    if (b == L'q') return (va || wcschr(L"cs", a)) ? 1 : 0;
+    if (a == L'j') return vb ? 2 : 0;
+    if (b == L'j') return (va || wcschr(L"bdn", a)) ? 1 : 0;
+    if (a == L'v') return vb ? 2 : (b == L'v' ? 1 : 0);
+    if (b == L'v') return va ? 2 : (wcschr(L"dlrn", a) ? 2 : (a == L's' ? 1 : 0));
+    if (a == L'x') return vb ? 2 : (wcschr(L"cpth", b) ? 2 : 0);
+    if (b == L'x') return va ? 2 : (wcschr(L"nlr", a) ? 1 : 0);
+    if (a == L'z') return vb ? 2 : (b == L'z' ? 1 : 0);
+    if (b == L'z') return va ? 2 : (wcschr(L"lntrdz", a) ? 1 : 0);
+    if (a == L'h' && !vb) return b == L't' ? 2 : (wcschr(L"mnrs", b) ? 1 : 0);
+    if (b == L'h' && !va) return wcschr(L"ctspgwr", a) ? 2 : (wcschr(L"kdzb", a) ? 1 : 0);
+    if (b == L'w' && !va) return wcschr(L"stdkglnr", a) ? 2 : 0;
+    if (a == L'w' && !vb) return wcschr(L"hrnls", b) ? 2 : 0;
+    if (va && vb) return 1;
+    if (va || vb) return 2;
+    if (a == b) return wcschr(L"lsf", a) ? 2 : 1;
+    return AsListHas(kAsEnCc, a, b) ? 2 : 1;
+}
+
+// Вес пары: 100 — частая (есть в таблице), 70 — допустимая, 40 — редкая, 0 — невозможная (cls == 0)
+static int AsPairClass(int lang, wchar_t a, wchar_t b) {
+    const int cl = (lang == AL_EN) ? AsEnPair(a, b) : AsRuPair(a, b);
+    if (cl == 0) return 0;
+    return AsHasBigram(lang, a, b) ? 3 : cl;
+}
+
+struct AsE {
+    int rate;     // правдоподобие слова в языке, 0..100
+    bool bad;     // слово не может быть словом языка
+    bool hard;    // есть невозможное сочетание (а не просто нет гласных)
+    int letters;
+    AsE() : rate(0), bad(false), hard(false), letters(0) {}
+};
 
 // Оценка непрерывной группы букв
 static void AsRunEval(const std::wstring& run, int lang, int& pairs, int& sum, bool& bad, bool& hard) {
@@ -206,12 +259,12 @@ static void AsRunEval(const std::wstring& run, int lang, int& pairs, int& sum, b
         }
         if (i == 0) continue;
         const wchar_t p = run[i - 1];
+        const int cl = AsPairClass(lang, p, c);
         ++pairs;
-        if (AsPairImpossible(lang, p, c)) {
+        sum += (cl == 3) ? 100 : (cl == 2) ? 70 : (cl == 1) ? 40 : 0;
+        if (cl == 0) {
             bad = true;
             hard = true;
-        } else {
-            sum += AsPairWeight(lang, p, c);
         }
         if (c == p) {
             if (++same >= 3) { bad = true; hard = true; }
@@ -220,24 +273,25 @@ static void AsRunEval(const std::wstring& run, int lang, int& pairs, int& sum, b
         }
     }
     if (n >= 2 && vowels == 0) bad = true;
-    if (lang == AL_EN) {
-        for (size_t i = 0; i < n; ++i) {
-            if (run[i] == L'q' && (i + 1 >= n || run[i + 1] != L'u')) { bad = true; hard = true; }
+    if (n >= 1) {
+        if (lang == AL_EN) {
+            if (run[n - 1] == L'q') { bad = true; hard = true; }
+        } else if (run[0] == L'ъ' || run[0] == L'ы' || run[0] == L'ь' || run[n - 1] == L'ъ') {
+            bad = true;
+            hard = true;
         }
-    } else if (n > 0 && (run[0] == L'ъ' || run[0] == L'ы' || run[0] == L'ь')) {
-        bad = true;
-        hard = true;
     }
 }
 
-// Оценка слова (в нижнем регистре) как слова языка lang. В английском слове не бывает , ; [ ] < > { } : " внутри
+// Оценка слова (в нижнем регистре) как слова языка lang. В английском слове не бывает , ; [ ] < > { } : " между буквами
 // и апострофа в начале: если они есть, текст, скорее всего, набран в чужой раскладке (там это буквы б ж х ъ э).
 static AsE AsEval(const std::wstring& s, int lang) {
     AsE r;
     int pairs = 0, sum = 0;
     std::wstring run;
-    for (size_t i = 0; i <= s.size(); ++i) {
-        const wchar_t c = i < s.size() ? s[i] : L'\0';
+    const size_t n = s.size();
+    for (size_t i = 0; i <= n; ++i) {
+        const wchar_t c = i < n ? s[i] : L'\0';
         if (c != L'\0' && lm::IsLetter(c)) {
             run += c;
             ++r.letters;
@@ -247,8 +301,11 @@ static AsE AsEval(const std::wstring& s, int lang) {
             AsRunEval(run, lang, pairs, sum, r.bad, r.hard);
             run.clear();
         }
-        if (c != L'\0' && lang == AL_EN && wcschr(L",;[]<>{}:\"", c)) { r.bad = true; r.hard = true; }
-        if (c == L'\'' && i == 0 && lang == AL_EN) { r.bad = true; r.hard = true; }
+        if (lang == AL_EN && c != L'\0') {
+            const bool inner = i > 0 && i + 1 < n && lm::IsLetter(s[i - 1]) && lm::IsLetter(s[i + 1]);
+            if (inner && wcschr(L",;[]<>{}:\"", c)) { r.bad = true; r.hard = true; }
+            if (c == L'\'' && i == 0 && s[n - 1] != L'\'') { r.bad = true; r.hard = true; }
+        }
     }
     r.rate = pairs > 0 ? sum / pairs : (r.letters > 0 ? 50 : 0);
     return r;
@@ -348,22 +405,21 @@ static void AsReloadDictIfChanged(DWORD now) {
     if (CompareFileTime(&d.ftLastWriteTime, &g_asDictTime) != 0) AsLoadDict();
 }
 
-// ---------------------------------------------------------------- слова строки и их оценка
+// ---------------------------------------------------------------- слова строки и их классификация
 struct AsFix {
     size_t start;  // индекс первого символа области замены в буфере
     size_t end;    // конец области замены (не включая); (size_t)-1 — до конца буфера
     HKL target;    // раскладка, в которую нужно перевести область
 };
 
-// Классы слова (по набранному тексту и его чтению в другой раскладке)
+// Классы слова
 enum {
-    AC_R = 0,     // слово верное, не трогаем
-    AC_W = 1,     // слово точно набрано не в той раскладке
-    AC_SK = 2,    // служебное слово другой раскладки: нужны подтверждения (вес weight)
-    AC_TECH = 3,  // английское сокращение/расширение, набранное по-русски: переключается только с контекстом
-    AC_AMB = 4,   // допустимо в обоих языках ("vs" и "мы"): само не переключается
-    AC_U0 = 5,    // неясно
-    AC_BAR = 6    // не оценивается (смешанная раскладка, цифры, чужая раскладка)
+    AC_R = 0,    // слово верное, не трогаем
+    AC_W = 1,    // слово заведомо набрано не в той раскладке
+    AC_SK = 2,   // подозрительное слово: нужны подтверждения (вес weight)
+    AC_AMB = 3,  // допустимо в обоих языках ("vs" и "мы"): само не переключается
+    AC_U0 = 4,   // неясно (в обеих раскладках выглядит нормально)
+    AC_BAR = 5   // не оценивается (смешанная раскладка, цифры, чужая раскладка)
 };
 
 struct AsTok {
@@ -372,8 +428,7 @@ struct AsTok {
     HKL H = NULL, T = NULL;
     int langH = AL_NONE, langT = AL_NONE;
     int weight = 0;
-    bool listed = false;
-    bool dot = false;
+    bool listed = false;  // слово из списка служебных слов
 };
 
 // Язык предыдущих слов строки (до 3 слов, по раскладке, в которой они сейчас стоят); 0 — неопределённо
@@ -429,13 +484,18 @@ static std::vector<AsTok> AsTokens(const std::vector<Rec>& buf, size_t maxTokens
     return v;
 }
 
+// Слово можно переключить вместе с соседним (набрано в той же раскладке и подозрительное)
+static bool AsPullable(const AsTok& p, HKL H) {
+    return p.H == H && (p.cls == AC_W || p.cls == AC_SK || p.cls == AC_AMB);
+}
+
 // Определяет класс слова. Слово переключается, только когда оно неправдоподобно в раскладке набора
 // и правдоподобно в другой; сомнительные слова остаются без изменений и ждут соседей.
-static void AsClassify(const std::vector<Rec>& buf, AsTok& t, const Cycle& cy, bool pause) {
+static void AsClassify(const std::vector<Rec>& buf, AsTok& t, const Cycle& cy, int mode) {
+    const bool pause = (mode == 1);
     t.cls = AC_BAR;
     t.weight = 0;
     t.listed = false;
-    t.dot = false;
     t.H = t.T = NULL;
     t.langH = t.langT = AL_NONE;
 
@@ -443,6 +503,7 @@ static void AsClassify(const std::vector<Rec>& buf, AsTok& t, const Cycle& cy, b
     if (len == 0 || len > 40) return;
     const HKL H = buf[t.ps].cur;
     std::wstring w;
+    w.reserve(len);
     for (size_t i = t.ps; i < t.pe; ++i) {
         const Rec& r = buf[i];
         if (r.neutral || r.cur != H || r.home != H || AsBadChar(r.ch)) return;  // только свежий текст одной раскладки
@@ -480,7 +541,7 @@ static void AsClassify(const std::vector<Rec>& buf, AsTok& t, const Cycle& cy, b
     const std::wstring lw = AsLower(w.substr(a, b - a));
     const std::wstring lc = AsLower(cv.substr(a, b - a));
     const size_t n = lw.size();
-    t.dot = (a > 0 && cv[a - 1] == L'.');
+    const bool dotEdge = (a > 0 && cv[a - 1] == L'.');
 
     // словарь пользователя сильнее оценок
     if (!g_asDict.empty()) {
@@ -495,74 +556,57 @@ static void AsClassify(const std::vector<Rec>& buf, AsTok& t, const Cycle& cy, b
     }
     const AsE eH = AsEval(lw, langH);
     AsE eT = AsEval(lc, langT);
-    if (!lcLetters) eT.bad = true;
+    if (!lcLetters) { eT.bad = true; eT.hard = true; }
 
     const bool typedKnown = AsInShort(langH, lw);
     const bool tFunc = lcLetters && AsInFunc(langT, lc);
     const bool tTech = lcLetters && langT == AL_EN && AsInTech(lc);
-    const bool laughH = AsLaughter(lw, langH);
-    const bool laughT = lcLetters && AsLaughter(lc, langT);
-    const int ctx = AsContext(buf, t.ps);
+    const bool typedBad = eH.bad || eH.rate < 55;
+    const bool targetGood = !eT.bad && eT.rate >= ((n >= 5) ? 70 : 80) && eT.letters >= 3;
 
-    if (typedKnown) {  // допустимо в своей раскладке
+    if (typedKnown) {  // допустимо в своей раскладке: само по себе не переключается
         t.cls = (tFunc || tTech) ? AC_AMB : AC_R;
         return;
     }
-    if (laughH) return;
-    if (laughT) { t.cls = AC_W; return; }
+    if (AsLaughter(lw, langH)) return;
+    if (lcLetters && n >= 4 && AsLaughter(lc, langT)) { t.cls = AC_W; return; }
+    // английская аббревиатура / расширение файла, набранные кириллицей: по-русски это бессмыслица
+    if (tTech && (n >= 3 || dotEdge)) { t.cls = AC_W; return; }
 
     if (tFunc && n <= 3) {  // служебное слово другой раскладки
-        if (eH.bad) {
-            t.cls = AC_W;  // набранное — не слово (нет гласных, невозможные сочетания)
-        } else if (pause && n <= 2) {
-            t.cls = AC_U0;
-        } else {
+        t.listed = true;
+        if (n == 1) {
             t.cls = AC_SK;
-            t.listed = true;
-            t.weight = (n == 1) ? 1 : 4;
+            t.weight = 1;
+        } else if (typedBad) {
+            t.cls = AC_SK;
+            t.weight = 6;
+        } else {
+            t.cls = pause ? AC_U0 : AC_SK;
+            t.weight = 4;
         }
-        return;
-    }
-    if (tTech) {
-        t.cls = t.dot ? AC_W : AC_TECH;  // точка перед словом (".apk") — явный признак
         return;
     }
     if (n <= 2) { t.cls = AC_U0; return; }
 
-    // Общий случай: слово переключается, если в набранной раскладке оно неправдоподобно,
-    // а в другой правдоподобно (или читается заметно лучше)
-    const bool unk3 = (n == 3);
-    int relDiff = 25, tmin = unk3 ? 95 : 75;
-    if (ctx == langH) {  // до этого текст был в той же раскладке: строже
-        relDiff = 40;
-        if (tmin < 85) tmin = 85;
-    } else if (ctx == langT) {  // предыдущие слова уже в другой раскладке: мягче
-        relDiff = 15;
+    if (n >= 4) {
+        if (eH.bad && targetGood) t.cls = pause ? (eH.hard ? AC_W : AC_U0) : AC_W;
+        else if (!eH.bad && eH.rate < 55 && targetGood) { t.cls = pause ? AC_U0 : AC_SK; t.weight = 3; }
+        else t.cls = AC_U0;
+        return;
     }
-    if (pause) {
-        relDiff = 35;
-        if (tmin < 85) tmin = 85;
-    }
-    const bool goodT = !eT.bad && eT.rate >= tmin;
-    const bool badH = eH.bad || eH.rate <= 45 || (goodT && eT.rate - eH.rate >= relDiff);
-    const bool goodH = !badH && eH.rate >= 70;
-    if (goodH) return;
-    if (badH && goodT) {
-        if (unk3) {
-            if (pause) { t.cls = AC_U0; return; }
-            t.cls = AC_SK;  // слово из трёх букв без списка: нужны подтверждения
-            t.weight = eH.hard ? 4 : 1;
-        } else {
-            t.cls = AC_W;
-        }
+    // слово из трёх букв без списка: нужны подтверждения соседних слов
+    if (eH.bad && targetGood && !pause) {
+        t.cls = AC_SK;
+        t.weight = eH.hard ? 3 : 2;
         return;
     }
     t.cls = AC_U0;
 }
 
 // Решает, нужно ли что-то переключить. mode: 0 — после пробела, 1 — по паузе в наборе, 2 — перед Enter.
-// Слово решается по соседям: уверенное слово "тянет" за собой сомнительные слова, набранные до него в той же раскладке;
-// верное слово, набранное в другой раскладке после служебных слов, подтверждает их.
+// Слово решается по соседям: подозрительные слова ждут подтверждения; уверенное слово "тянет" за собой подозрительные
+// слова, набранные до него в той же раскладке; верное слово другой раскладки подтверждает их.
 static bool AsDecide(const std::vector<Rec>& buf, int mode, AsFix& out) {
     if (AsExcluded()) return false;
     out.start = 0;
@@ -574,35 +618,39 @@ static bool AsDecide(const std::vector<Rec>& buf, int mode, AsFix& out) {
     const Cycle cy = BuildCycle();
     std::vector<AsTok> tk = AsTokens(buf, 9);
     if (tk.empty()) return false;
-    for (size_t i = 0; i < tk.size(); ++i) AsClassify(buf, tk[i], cy, pause);
+    for (size_t i = 0; i < tk.size(); ++i) AsClassify(buf, tk[i], cy, mode);
 
     const size_t k = tk.size() - 1;
     const AsTok& last = tk[k];
-    if (last.cls == AC_BAR) return false;
+    if (last.cls == AC_BAR || last.cls == AC_U0) return false;
 
-    // --- последнее слово не верное: оцениваем его вместе с предыдущими сомнительными словами той же раскладки
+    // --- последнее слово подозрительное или неправильное: оцениваем его вместе с предыдущими такими же
     if (last.cls != AC_R) {
         size_t lo = k;
-        while (lo > 0 && tk[lo - 1].cls != AC_R && tk[lo - 1].cls != AC_BAR && tk[lo - 1].H == last.H) --lo;
-        if (!g_asHeur) lo = k;  // режим только словаря: соседние слова не трогаем
-
+        if (g_asHeur) {
+            while (lo > 0 && AsPullable(tk[lo - 1], last.H)) --lo;
+            // неоднозначные слова в начале области подтягиваем только в начале текста или после слов целевой раскладки
+            while (lo < k && tk[lo].cls == AC_AMB &&
+                   !(AsAtStart(buf, tk[lo].ps) || AsContext(buf, tk[lo].ps) == last.langT))
+                ++lo;
+        }
         bool strong = false;
-        int total = 0, listed = 0, tech = 0;
+        int total = 0, listed = 0;
         for (size_t i = lo; i <= k; ++i) {
             const AsTok& t = tk[i];
             if (t.cls == AC_W) strong = true;
             else if (t.cls == AC_SK) { total += t.weight; if (t.listed) listed += t.weight; }
-            else if (t.cls == AC_TECH) ++tech;
         }
+        if (!strong && total == 0) return false;
         const int ctx = AsContext(buf, tk[lo].ps);
         const bool atStart = AsAtStart(buf, tk[lo].ps);
         const int lt = last.langT;
 
         bool go = strong || total >= 6;
         if (!go && total >= 4 && (atStart || ctx == lt || mode == 2)) go = true;
-        if (!go && total >= 2 && ctx == lt && !pause) go = true;
-        if (!go && listed >= 1 && atStart && mode == 2) go = true;
-        if (!go && !pause && tech >= 1 && lt == AL_EN && (tech >= 2 || ctx == AL_EN)) go = true;
+        if (!go && total >= 3 && mode == 2) go = true;
+        if (!go && total >= 2 && ctx == lt && mode != 1) go = true;
+        if (!go && listed >= 1 && mode == 2 && (atStart || ctx == lt)) go = true;  // "z" + Enter -> "я"
         if (!go) return false;
 
         out.start = tk[lo].ps;
@@ -611,34 +659,41 @@ static bool AsDecide(const std::vector<Rec>& buf, int mode, AsFix& out) {
         return true;
     }
 
-    // --- последнее слово верное: оно подтверждает служебные слова другой раскладки перед ним ("z при" -> "я при")
+    // --- последнее слово верное: оно подтверждает подозрительные слова другой раскладки перед ним
     if (pause || !g_asHeur || k == 0) return false;
     const size_t hi = k - 1;
     const AsTok& prev = tk[hi];
-    if (prev.cls == AC_R || prev.cls == AC_BAR || prev.cls == AC_TECH || prev.H == last.H || prev.langT != last.langH)
-        return false;
+    if (!(prev.cls == AC_SK || prev.cls == AC_W || prev.cls == AC_AMB)) return false;
+    if (prev.H == last.H || prev.langT != last.langH) return false;
+
     size_t lo = hi;
-    while (lo > 0 && tk[lo - 1].H == prev.H && tk[lo - 1].cls != AC_R && tk[lo - 1].cls != AC_BAR &&
-           tk[lo - 1].cls != AC_TECH)
-        --lo;
+    while (lo > 0 && AsPullable(tk[lo - 1], prev.H)) --lo;
+    while (lo < hi && tk[lo].cls == AC_AMB &&
+           !(AsAtStart(buf, tk[lo].ps) || AsContext(buf, tk[lo].ps) == prev.langT))
+        ++lo;
+
     bool strong = false;
-    int total = 0;
+    int total = 0, amb = 0;
     for (size_t i = lo; i <= hi; ++i) {
-        if (tk[i].cls == AC_W) strong = true;
-        else if (tk[i].cls == AC_SK) total += tk[i].weight;
+        const AsTok& t = tk[i];
+        if (t.cls == AC_W) strong = true;
+        else if (t.cls == AC_SK) total += t.weight;
+        else if (t.cls == AC_AMB) ++amb;
     }
     const int ctx = AsContext(buf, tk[lo].ps);
     const bool atStart = AsAtStart(buf, tk[lo].ps);
-    const int sum = total + 3;
-    const bool go = strong || (total > 0 && (sum >= 6 || (sum >= 4 && (atStart || (ctx == prev.langT && total >= 2)))));
+    const int sum = total + 3;  // верное слово следом — подтверждение
+    bool go = strong || (total > 0 && (sum >= 6 || (sum >= 4 && (atStart || ctx == prev.langT))));
+    if (!go && total == 0 && amb > 0 && atStart && tk[lo].cls == AC_AMB) go = true;  // "vs при" -> "мы при"
     if (!go) return false;
+
     out.start = tk[lo].ps;
     out.end = tk[hi].pe;
     out.target = last.H;
     return true;
 }
 
-// ---------------------------------------------------------------- замена слова (отдельный поток)
+// ---------------------------------------------------------------- замена слов (отдельный поток)
 struct AsEv {
     WORD vk;
     WORD scan;
@@ -813,6 +868,7 @@ static void AsOnTimer() {
     if (g_asBusy || g_busy) return;
     HWND fg = GetForegroundWindow();
     if (!fg || fg != g_lastFg || AsIsConsole(fg)) return;
+    if (QueryGame(fg).game && !g_gameArmed) return;
     std::vector<Rec> snap;
     {
         Lock l;
@@ -873,7 +929,10 @@ static bool AsEnterPlain() {
 static bool AsWantsEnter() {
     if (g_busy) return false;
     HWND fg = GetForegroundWindow();
-    if (!fg || AsIsConsole(fg) || AsExcluded()) return false;
+    // буфер набирался в другом окне (например, до запуска игры) — Enter не трогаем
+    if (!fg || fg != g_lastFg || AsIsConsole(fg) || AsExcluded()) return false;
+    // в игре слова проверяются, только пока открыт чат
+    if (QueryGame(fg).game && !g_gameArmed) return false;
     std::vector<Rec> snap;
     {
         Lock l;
