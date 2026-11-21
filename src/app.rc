@@ -1,8 +1,8 @@
 1 ICON "../assets/app.ico"
 
 1 VERSIONINFO
- FILEVERSION 1,1,1,0
- PRODUCTVERSION 1,1,1,0
+ FILEVERSION 1,2,0,0
+ PRODUCTVERSION 1,2,0,0
  FILEFLAGSMASK 0x3fL
  FILEFLAGS 0
  FILEOS 0x00040004L
@@ -15,11 +15,11 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Smorvel\0"
             VALUE "FileDescription", "LangSwitcher\0"
-            VALUE "FileVersion", "1.1.1\0"
+            VALUE "FileVersion", "1.2.0\0"
             VALUE "InternalName", "LangSwitch\0"
             VALUE "OriginalFilename", "LangSwitch.exe\0"
             VALUE "ProductName", "LangSwitcher\0"
-            VALUE "ProductVersion", "1.1.1\0"
+            VALUE "ProductVersion", "1.2.0\0"
         END
     END
 
