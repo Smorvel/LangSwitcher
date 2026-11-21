@@ -28,3 +28,14 @@ target_link_libraries(LangSwitch PRIVATE user32 winmm ole32 oleaut32 uuid advapi
 if(MINGW)
   target_link_options(LangSwitch PRIVATE -static -static-libgcc -static-libstdc++)
 endif()
+
+# Модуль авто-переключения раскладки: отдельная библиотека autoswitch.dll, которая кладётся рядом с программой.
+# Если файла src/autoswitch.cpp нет, библиотека не собирается, и авто-переключение недоступно.
+if(WIN32 AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/autoswitch.cpp")
+  add_library(autoswitch SHARED src/autoswitch.cpp)
+  set_target_properties(autoswitch PROPERTIES PREFIX "" OUTPUT_NAME "autoswitch")
+  target_link_libraries(autoswitch PRIVATE user32)
+  if(MINGW)
+    target_link_options(autoswitch PRIVATE -static -static-libgcc -static-libstdc++)
+  endif()
+endif()
