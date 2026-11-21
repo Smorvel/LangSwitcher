@@ -1424,13 +1424,7 @@ static void ConvertBuffer(const std::vector<Rec>& snap, const Cycle& cycle, size
     SwitchLayoutTo(endLayout);
 }
 
-// Опциональный модуль авто-переключения: если файла autoswitch.h нет, программа собирается без него
-#if defined(__has_include)
-#if __has_include("autoswitch.h")
-#define LS_AUTOSWITCH 1
-#include "autoswitch.h"
-#endif
-#endif
+#include "autoswitch_host.h"  // связь с опциональным модулем авто-переключения (autoswitch.dll)
 
 // Двойной Ctrl без введённого текста: переключаем раскладку на последнюю использованную другого алфавита
 static void SwitchLayoutEmpty() {
@@ -1491,11 +1485,7 @@ static unsigned __stdcall ConvertThread(void*) {
         } else {
             bool done = false;
             if (hint) done = ConvertSelection(byMouse, down, up, trusted);
-            #ifdef LS_AUTOSWITCH
             if (!done) ConvertBuffer(snap, cycle, AsManualStart(snap));
-            #else
-            if (!done) ConvertBuffer(snap, cycle);
-            #endif
         }
     } else if (g_cfg.switchEmpty) {
         SwitchLayoutEmpty();  // текст не вводился: просто переключаем раскладку
@@ -2693,11 +2683,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int) {
     // Разрешаем копиям без прав администратора присылать служебные команды (закрыться / сообщить права)
     if (g_msgCmd) ChangeWindowMessageFilterEx(g_hwnd, g_msgCmd, MSGFLT_ALLOW, NULL);
 
-    #ifdef LS_AUTOSWITCH
-        g_kbHook = SetWindowsHookExW(WH_KEYBOARD_LL, AsSetup(), GetModuleHandleW(NULL), 0);
-    #else
-        g_kbHook = SetWindowsHookExW(WH_KEYBOARD_LL, KbProc, GetModuleHandleW(NULL), 0);
-    #endif
+    g_kbHook = SetWindowsHookExW(WH_KEYBOARD_LL, AsSetup(), GetModuleHandleW(NULL), 0);
     g_msHook = SetWindowsHookExW(WH_MOUSE_LL, MsProc, GetModuleHandleW(NULL), 0);
     if (!g_kbHook) {
         MessageBoxW(NULL, L"Не удалось установить перехват клавиатуры.", L"LangSwitch", MB_ICONERROR);
