@@ -24,6 +24,8 @@ jobs:
           $exe = Get-ChildItem -Path build -Recurse -Filter LangSwitch.exe | Select-Object -First 1
           Copy-Item $exe.FullName dist/LangSwitch.exe
           Copy-Item assets/LangSwitch.ini dist/LangSwitch.ini
+          $dll = Get-ChildItem -Path build -Recurse -Filter autoswitch.dll | Select-Object -First 1
+          if ($dll) { Copy-Item $dll.FullName dist/autoswitch.dll }
 
           $hasWav = Test-Path assets/switch.wav
           $hasMp3 = Test-Path assets/switch.mp3
