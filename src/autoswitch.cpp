@@ -1,5 +1,5 @@
 // autoswitch.cpp — модуль авто-переключения раскладки (русская <-> английская), собирается в autoswitch.dll.
-// Программа загружает его при запуске, если файл autoswitch.dll лежит рядом с LangSwitch.exe.
+// Программа загружает его при запуске, если файл autoswitch.dll лежит рядом с LangSwitcher.exe.
 // Здесь таблицы, оценка слов, решение о переключении и пользовательский словарь Words.txt.
 #ifndef UNICODE
 #define UNICODE
@@ -43,21 +43,20 @@ const wchar_t* kBigEn =
     L"ye ud mb ip ub oi oa ok ob ib ak ik ph lk lf lp lm rk rb rg rl rv rp nk nn nl nm gn gs gl hy hr kn kl ks ki ku ko "
     L"ka za ze zi zo xt xp yp yr ys yt yn ym ur us ut ve vi vo wn wr ws";
 
+// только действительно частые пары: редкие, но возможные сочетания оцениваются правилами (ruPair), а не таблицей
 const wchar_t* kBigRu =
     L"ст но то на ен ов ни ра во ко ол ор ро по ре ан ер ос ти ли ет ва ль ем ат ал ла ка ть ог го ел ны ск ин ие ой ий "
     L"ых ым ом ед ик ит ле ме мо ми ма му не ну ту ты де да ди до др дн дл ве ви вы вн вс вл вр за зн зд зв из иц ир ис ив "
-    L"ил им ию ия ке ки кл кр ку лу ло ля мн мы нг нд нс нт нь ню ня об од ое ож оз ок он оп от оф ох оч ош пе пи пл пр пу "
-    L"пы рг рд рж рз рк рн рс рт ру рц ря са св се си сл см сн со сп ср су та тв те тк тн тр тя уб ув уд уж уз уй ук ул "
-    L"ум ун уп ур ус ут уч фи фо фр ха хо ху ца це ци чи ча че чн чт чу ша ше ши шл шн щи ыв ые ыл ын ыт эт эк юд ющ юч "
+    L"ил им ию ия ке ки кл кр ку лу ло ля мн мы нд нт нь ню ня об од ое ож оз ок он оп от оф ох оч ош пе пи пл пр пу пы "
+    L"рд рж рз рк рн рс рт ру рц ря са св се си сл см сн со сп ср су та тв те тк тн тр тя уб ув уд уж уз уй ук ул "
+    L"ум ун уп ур ус ут уч фи фо фр ха хо ху ца це ци чи ча че чн чт чу ша ше ши шл шн шт щи ыв ые ыл ын ыт эт эк юд ющ юч "
     L"ят яв яз як ял ян ях ье ьн ьс ью ьк йт йс йн ай ей ую ою ая яя ее ое бо бы ба бе би бр бл бу гу га ге ги гл гр гн "
-    L"жа же жи жн жд зо зи зе зы зм зр иб ег аб ек ап аз ав ад аж ак ам ар ас ач ау ах ац аш бн бс вд вк вм вп вт вч вш "
-    L"ех еж ез ел еп ер ес еч еш ещ ёт ёл ён ёр им ин ио ип ич иш кн кс кт км лб лг лж лк лм лн лп лс лт лч лш мб мг мм "
-    L"мп мс мт мч мя нб нв нж нз нк нл нм нн нп нр нц нч нш ох оц ощ ух уц уш ущ юб юв юг юж юк юл юм юн юр юс ют юх яд "
-    L"яж яй ям яп яр яс яц яч яш ои ио еи ею аю уе уи ёс ёв ёз ёк ёж ьи ьё ьо ьу ья ъе ъё ъя ъю гу гд кё шь шё щё чё жё чь "
+    L"жа же жи жн жд зо зи зе зы зм зр иб ег аб ек ап аз ав ад аж ак ам ар ас ач ау ах ац аш вд вк вп вт вч "
+    L"ех еж ез ел еп ер ес еч еш ещ ёт ёл ён ёр им ин ио ип ич иш кн кс кт км лк лм лн лт "
+    L"мп мс мя нк нн нц ох оц ощ ух уц уш ущ юб юв юг юж юк юл юм юн юр юс ют юх яд "
+    L"яж яй ям яп яр яс яц яч яш ои ио еи ею аю уе уи ёс ёв ёз ёк ёж ьи ьё ьо ьу ья ъе ъё ъя ъю гд кё шь шё щё чё жё чь "
     L"ыс ыр ыд ыб ыг ыж ык ыч ыш ыз бя бю бь бё вя вё вю вь гя гю дя дю дё дь зя зю зь кя кю кь лё лю мя мю мь мё пя пю "
-    L"пь пё рё рю рь сё сю ся сь тё тю тя ть фя фю фь хё хю хя цю цё ща щу щё аи еа оа уа ри ра ря "
-    L"бт вв вг вз вп вх вц гв дв дг дж дз дм дп дс дт дц жж жк жм жр зг зл зс кв кц лд лз лл лх лц мд мк мл мр мц мш нн "
-    L"пн пс пт пц пч рб рв рл рм рп рх рч рш сб сг сд сж сз сх сц сч тл тм тс тх тц фл хв хл хм хн хр хт цв чк шк шт ид ще";
+    L"пь пё рё рю рь сё сю ся сь тё тю тя ть фя фю фь хё хю хя цю цё ща щу щё аи еа оа уа ри ра ря ид ще";
 
 // допустимые английские сочетания согласных (для оценки пар не из таблицы)
 const wchar_t* kEnCc =
@@ -196,10 +195,11 @@ int ruPair(wchar_t a, wchar_t b) {
         return 2;
     }
     // согласная + согласная
-    if (a == b) return wcschr(L"лнсмжтрдб", a) ? 1 : 0;
-    if (a == L'щ') return 0;
-    if (b == L'щ') return wcschr(L"бнтр", a) ? 1 : 0;
-    if (wcschr(L"жшчц", a) && wcschr(L"жшчц", b)) return 0;
+    if (a == b) return wcschr(L"бвгдзклмнпрстфжх", a) ? 1 : 0;  // двойные согласные редкие, но бывают (ввод, ссора)
+    if (a == L'щ') return b == L'н' ? 1 : 0;                      // хищник
+    if (b == L'щ') return wcschr(L"бнтрлм", a) ? 1 : 0;           // общий, женщина, тщетно, борщ
+    if (wcschr(L"жшчц", a) && wcschr(L"жшчц", b))                 // мужчина, лучше
+        return ((a == L'ж' && b == L'ч') || (a == L'ч' && b == L'ш') || (a == L'ш' && b == L'ч')) ? 1 : 0;
     if (a == L'ц') return wcschr(L"вкнт", b) ? 2 : 1;
     if (a == L'ч') return wcschr(L"ткнв", b) ? 2 : 1;
     if (a == L'ш') return wcschr(L"кнтлмвпр", b) ? 2 : 1;
@@ -217,8 +217,8 @@ int enPair(wchar_t a, wchar_t b) {
     if (b == L'j') return (va || wcschr(L"bdn", a)) ? 1 : 0;
     if (a == L'v') return vb ? 2 : (b == L'v' ? 1 : 0);
     if (b == L'v') return va ? 2 : (wcschr(L"dlrn", a) ? 2 : (a == L's' ? 1 : 0));
-    if (a == L'x') return vb ? 2 : (wcschr(L"cpth", b) ? 2 : 0);
-    if (b == L'x') return va ? 2 : (wcschr(L"nlr", a) ? 1 : 0);
+    if (a == L'x') return vb ? 2 : 1;  // в аббревиатурах x стоит и рядом с согласными (sfx)
+    if (b == L'x') return va ? 2 : 1;
     if (a == L'z') return vb ? 2 : (b == L'z' ? 1 : 0);
     if (b == L'z') return va ? 2 : (wcschr(L"lntrdz", a) ? 1 : 0);
     if (a == L'h' && !vb) return b == L't' ? 2 : (wcschr(L"mnrs", b) ? 1 : 0);
@@ -239,15 +239,16 @@ int pairClass(int lang, wchar_t a, wchar_t b) {
 }
 
 struct E {
-    int rate;   // правдоподобие слова в языке, 0..100
-    bool bad;   // слово не может быть словом языка
-    bool hard;  // есть невозможное сочетание (а не просто нет гласных)
+    int rate;     // правдоподобие слова в языке, 0..100
+    int rare;     // сколько редких пар
     int letters;
-    E() : rate(0), bad(false), hard(false), letters(0) {}
+    bool bad;     // слово не может быть словом языка
+    bool hard;    // есть невозможное сочетание (а не просто нет гласных)
+    E() : rate(0), rare(0), letters(0), bad(false), hard(false) {}
 };
 
 // Оценка непрерывной группы букв
-void runEval(const std::wstring& run, int lang, int& pairs, int& sum, bool& bad, bool& hard) {
+void runEval(const std::wstring& run, int lang, int& pairs, int& sum, int& rare, bool& bad, bool& hard) {
     const size_t n = run.size();
     int vowels = 0, cons = 0, same = 1;
     for (size_t i = 0; i < n; ++i) {
@@ -264,6 +265,7 @@ void runEval(const std::wstring& run, int lang, int& pairs, int& sum, bool& bad,
         const int cl = pairClass(lang, p, c);
         ++pairs;
         sum += (cl == 3) ? 100 : (cl == 2) ? 70 : (cl == 1) ? 40 : 0;
+        if (cl == 1) ++rare;
         if (cl == 0) {
             bad = true;
             hard = true;
@@ -300,7 +302,7 @@ E evalWord(const std::wstring& s, int lang) {
             continue;
         }
         if (!run.empty()) {
-            runEval(run, lang, pairs, sum, r.bad, r.hard);
+            runEval(run, lang, pairs, sum, r.rare, r.bad, r.hard);
             run.clear();
         }
         if (lang == AL_EN && c != L'\0') {
@@ -406,7 +408,7 @@ void createDictTemplate() {
     HANDLE h = CreateFileW(dictPath().c_str(), GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
     if (h == INVALID_HANDLE_VALUE) return;
     const char* t =
-        "# LangSwitch: словарь авто-переключения раскладки. Одно слово в строке, строки с # игнорируются, регистр не важен.\r\n"
+        "# LangSwitcher: словарь авто-переключения раскладки. Одно слово в строке, строки с # игнорируются, регистр не важен.\r\n"
         "# Слово из словаря всегда переключается в раскладку, где оно набирается как записано (высший приоритет).\r\n"
         "# Пример: если записать \"бг\", то набранное в английской раскладке \",u\" всегда станет \"бг\".\r\n"
         "# Если записать оба варианта (\"бг\" и \",u\"), переключения для этого слова не будет.\r\n";
@@ -594,6 +596,9 @@ void classify(const AsChar* buf, Tok& t, const Cyc& cy, int mode) {
     const bool tTech = lcLetters && langT == AL_EN && inTech(lc);
     const bool typedBad = eH.bad || eH.rate < 55;
     const bool targetGood = !eT.bad && eT.rate >= ((n >= 5) ? 70 : 80) && eT.letters >= 3;
+    // допустимо даже без гласных, но только в английском (аббревиатуры вроде "sfx"); по-русски слов без гласных нет
+    const bool targetPlausible = !eT.hard && eT.letters >= 3 && (langT == AL_EN || !eT.bad);
+    const int diff = eT.rate - eH.rate;
 
     if (typedKnown) {  // допустимо в своей раскладке: само по себе не переключается
         t.cls = (tFunc || tTech) ? AC_AMB : AC_R;
@@ -621,23 +626,32 @@ void classify(const AsChar* buf, Tok& t, const Cyc& cy, int mode) {
     if (n <= 2) { t.cls = AC_U0; return; }
 
     if (n >= 4) {
-        if (eH.bad && targetGood) t.cls = pause ? (eH.hard ? AC_W : AC_U0) : AC_W;
-        else if (!eH.bad && eH.rate < 55 && targetGood) { t.cls = pause ? AC_U0 : AC_SK; t.weight = 3; }
-        else t.cls = AC_U0;
+        // в набранном слове есть невозможное сочетание, а в другой раскладке оно читается нормально
+        if (eH.hard && targetGood) { t.cls = AC_W; return; }
+        if (eH.bad && targetGood) { t.cls = pause ? AC_U0 : AC_W; return; }
+        if (eH.hard && targetPlausible) { t.cls = pause ? AC_U0 : AC_SK; t.weight = 3; return; }
+        // слово возможное, но заметно хуже читается в набранной раскладке, чем в другой ("пшерги" и "github")
+        if (!pause && !eH.bad && targetGood &&
+            ((eH.rate <= 70 && diff >= 25) || (eH.rare >= 2 && eT.rare == 0 && eH.rate <= 80 && diff >= 12))) {
+            t.cls = AC_SK;
+            t.weight = (eH.rate <= 60 && diff >= 35) ? 6 : ((diff >= 30 || n >= 5) ? 4 : 3);
+            return;
+        }
+        t.cls = AC_U0;
         return;
     }
+
     // слово из трёх букв без списка: нужны подтверждения соседних слов
-    if (eH.bad && targetGood && !pause) {
-        t.cls = AC_SK;
-        t.weight = eH.hard ? 3 : 2;
-        return;
-    }
-    // слово, которое в набранной раскладке выглядит заметно хуже, чем в другой ("сге" и "cut"):
-    // само не переключается, но подтягивается к соседним словам
-    if (!pause && targetGood && !eH.bad && eH.rate <= 75 && eT.rate >= 90 && eT.rate - eH.rate >= 25) {
-        t.cls = AC_SK;
-        t.weight = 1;
-        return;
+    if (!pause) {
+        if (eH.hard && targetPlausible) { t.cls = AC_SK; t.weight = 6; return; }  // "ыач" -> "sfx"
+        if (eH.bad && targetGood) { t.cls = AC_SK; t.weight = 2; return; }
+        // слово, которое в набранной раскладке выглядит заметно хуже, чем в другой ("сге" и "cut"):
+        // само не переключается, но подтягивается к соседним словам
+        if (!eH.bad && targetGood && eH.rate <= 75 && eT.rate >= 90 && diff >= 25) {
+            t.cls = AC_SK;
+            t.weight = 1;
+            return;
+        }
     }
     t.cls = AC_U0;
 }
