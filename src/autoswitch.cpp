@@ -808,39 +808,6 @@ bool decide(const AsChar* buf, size_t n, int mode, AsResult* out) {
     return true;
 }
 
-    // --- последнее слово верное: оно подтверждает подозрительные слова другой раскладки перед ним
-    if (pause || k == 0) return false;
-    const size_t hi = k - 1;
-    const Tok& prev = tk[hi];
-    if (!(prev.cls == AC_SK || prev.cls == AC_W || prev.cls == AC_AMB)) return false;
-    if (prev.H == last.H || prev.langT != last.langH) return false;
-
-    size_t lo = hi;
-    while (lo > 0 && pullable(tk[lo - 1], prev.H)) --lo;
-    while (lo < hi && tk[lo].cls == AC_AMB && !(atStart(buf, tk[lo].ps) || context(buf, tk[lo].ps) == prev.langT))
-        ++lo;
-
-    bool strong = false;
-    int total = 0, amb = 0;
-    for (size_t i = lo; i <= hi; ++i) {
-        const Tok& t = tk[i];
-        if (t.cls == AC_W) strong = true;
-        else if (t.cls == AC_SK) total += t.weight;
-        else if (t.cls == AC_AMB) ++amb;
-    }
-    const int ctx = context(buf, tk[lo].ps);
-    const bool start = atStart(buf, tk[lo].ps);
-    const int sum = total + 3;  // верное слово следом — подтверждение
-    bool go = strong || (total > 0 && (sum >= 6 || (sum >= 4 && (start || ctx == prev.langT))));
-    if (!go && total == 0 && amb > 0 && start && tk[lo].cls == AC_AMB) go = true;  // "vs при" -> "мы при"
-    if (!go) return false;
-
-    out->start = (int)tk[lo].ps;
-    out->end = (int)tk[hi].pe;
-    out->target = last.H;
-    return true;
-}
-
 }  // namespace
 
 extern "C" {
