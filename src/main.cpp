@@ -2365,7 +2365,7 @@ static void PaintDialog(HDC dc) {
     SetTextColor(dc, kMuted);
     r.top = Sc(54);
     r.bottom = Sc(76);
-    DrawTextW(dc, L"Программа уже запущена. Выберите действие.", -1, &r, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+    DrawTextW(dc, L"Программа запущена. Это окно можно закрыть.", -1, &r, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 
     if (g_runElevated) {
         SetTextColor(dc, kGreen);
