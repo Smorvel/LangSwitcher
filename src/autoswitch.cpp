@@ -294,6 +294,13 @@ E evalWord(const std::wstring& s, int lang) {
     int pairs = 0, sum = 0;
     std::wstring run;
     const size_t n = s.size();
+    // английское слово, начинающееся с запятой или точки перед буквой (",tp"), почти наверняка набрано кириллицей (б, ю).
+    // Исключение: расширения файлов и технические слова (".apk")
+    if (lang == AL_EN && n >= 2 && (s[0] == L',' || s[0] == L'.') && isLetter(s[1])) {
+        size_t e2 = 1;
+        while (e2 < n && isLetter(s[e2])) ++e2;
+        if (!inTech(s.substr(1, e2 - 1))) { r.bad = true; r.hard = true; }
+    }
     for (size_t i = 0; i <= n; ++i) {
         const wchar_t c = i < n ? s[i] : L'\0';
         if (c != L'\0' && isLetter(c)) {
@@ -448,7 +455,8 @@ struct Tok {
     int langH, langT;
     int weight;
     bool listed;  // слово из списка служебных слов
-    Tok() : ps(0), pe(0), cls(AC_BAR), H(0), T(0), langH(AL_NONE), langT(AL_NONE), weight(0), listed(false) {}
+    bool soft;    // короткое слово, которое в другой раскладке читается нормально: его можно подтянуть к уверенно неверному соседу
+    Tok() : ps(0), pe(0), cls(AC_BAR), H(0), T(0), langH(AL_NONE), langT(AL_NONE), weight(0), listed(false), soft(false) {}
 };
 
 struct Cyc {
@@ -523,6 +531,24 @@ bool pullable(const Tok& p, UINT_PTR H) {
     return p.H == H && (p.cls == AC_W || p.cls == AC_SK || p.cls == AC_AMB);
 }
 
+// Короткое "ни то ни сё" слово (tv, tle, мук): подтягивается, только если рядом есть заведомо неверное слово
+bool softPullable(const Tok& p, UINT_PTR H) {
+    return p.H == H && p.soft && (p.cls == AC_U0 || p.cls == AC_R);
+}
+
+// Число вроде "1ю4ю7": цифры, разделённые русской "ю" (на этой клавише в английской раскладке стоит точка)
+bool isDotNumberRu(const AsChar* buf, size_t s, size_t e) {
+    bool digit = false;
+    int dots = 0;
+    for (size_t i = s; i < e; ++i) {
+        const wchar_t c = buf[i].ch;
+        if (c >= L'0' && c <= L'9') digit = true;
+        else if (c == L'ю' && digit) { digit = false; ++dots; }
+        else return false;
+    }
+    return digit && dots > 0;
+}
+
 // Определяет класс слова. Слово переключается, только когда оно неправдоподобно в раскладке набора
 // и правдоподобно в другой; сомнительные слова остаются без изменений и ждут соседей.
 void classify(const AsChar* buf, Tok& t, const Cyc& cy, int mode) {
@@ -530,17 +556,24 @@ void classify(const AsChar* buf, Tok& t, const Cyc& cy, int mode) {
     t.cls = AC_BAR;
     t.weight = 0;
     t.listed = false;
+    t.soft = false;
     t.H = t.T = 0;
     t.langH = t.langT = AL_NONE;
 
     const size_t len = t.pe - t.ps;
     if (len == 0 || len > 40) return;
     const UINT_PTR H = buf[t.ps].cur;
+    // число с точками, набранное в русской раскладке: "1ю4ю7" -> "1.4.7"
+    const bool dotNum = isDotNumberRu(buf, t.ps, t.pe);
+    // "@слово@": в английской раскладке это кавычки вокруг русского слова
+    const bool atQuote = len >= 3 && buf[t.ps].ch == L'@' && buf[t.pe - 1].ch == L'@' && g_api->script(H) == 1;
     std::wstring w;
     w.reserve(len);
     for (size_t i = t.ps; i < t.pe; ++i) {
         const AsChar& r = buf[i];
-        if (r.neutral || r.cur != H || r.home != H || badChar(r.ch)) return;  // только свежий текст одной раскладки
+        if (r.cur != H || r.home != H) return;  // только свежий текст одной раскладки
+        const bool edgeAt = atQuote && r.ch == L'@' && (i == t.ps || i == t.pe - 1);
+        if (!dotNum && !edgeAt && (r.neutral || badChar(r.ch))) return;
         w += r.ch;
     }
     const int scrH = g_api->script(H);
@@ -565,6 +598,8 @@ void classify(const AsChar* buf, Tok& t, const Cyc& cy, int mode) {
     std::wstring cv(w.size(), L' ');
     for (size_t i = 0; i < w.size(); ++i) cv[i] = g_api->conv(w[i], H, T);
 
+    if (dotNum) { t.cls = AC_W; return; }  // "1ю4ю7": ю между цифрами — это точка
+
     // ядро слова: без знаков по краям. Край обрезается, если в другой раскладке там знак препинания
     // (например, русская "ю" в начале слова — точка английской раскладки: ".apk")
     size_t a = 0, b = w.size();
@@ -587,7 +622,8 @@ void classify(const AsChar* buf, Tok& t, const Cyc& cy, int mode) {
     for (size_t i = 0; i < lc.size(); ++i) {
         if (!isLetter(lc[i])) { lcLetters = false; break; }
     }
-    const E eH = evalWord(lw, langH);
+    // набранное слово оцениваем целиком, без обрезки краёв: б ю ж э х ъ на краю — это буквы, а не знаки
+    const E eH = evalWord(lower(w), langH);
     E eT = evalWord(lc, langT);
     if (!lcLetters) { eT.bad = true; eT.hard = true; }
 
@@ -599,6 +635,15 @@ void classify(const AsChar* buf, Tok& t, const Cyc& cy, int mode) {
     // допустимо даже без гласных, но только в английском (аббревиатуры вроде "sfx"); по-русски слов без гласных нет
     const bool targetPlausible = !eT.hard && eT.letters >= 3 && (langT == AL_EN || !eT.bad);
     const int diff = eT.rate - eH.rate;
+
+    // короткое слово, нормально читающееся в другой раскладке (не служебное в своей): кандидат на подтягивание
+    t.soft = lcLetters && n <= 3 && eT.letters >= 2 && !eT.bad && eT.rate >= 70 && !inFunc(langH, lw);
+
+    // "@vbh@": внутри @ набрано не слово, а в другой раскладке слово нормальное -> @ это кавычки
+    if (atQuote && typedBad && lcLetters && n >= 2 && !eT.bad && !eT.hard && eT.letters >= 2) {
+        t.cls = AC_W;
+        return;
+    }
 
     if (typedKnown) {  // допустимо в своей раскладке: само по себе не переключается
         t.cls = (tFunc || tTech) ? AC_AMB : AC_R;
@@ -678,7 +723,16 @@ bool decide(const AsChar* buf, size_t n, int mode, AsResult* out) {
     // --- последнее слово подозрительное или неправильное: оцениваем его вместе с предыдущими такими же
     if (last.cls != AC_R) {
         size_t lo = k;
-        while (lo > 0 && pullable(tk[lo - 1], last.H)) --lo;
+        bool anyW = (last.cls == AC_W);  // мягкие слова подтягиваем только к заведомо неверному
+        while (lo > 0) {
+            const Tok& p = tk[lo - 1];
+            if (pullable(p, last.H) || (anyW && softPullable(p, last.H))) {
+                if (p.cls == AC_W) anyW = true;
+                --lo;
+            } else {
+                break;
+            }
+        }
         // неоднозначные слова в начале области подтягиваем только в начале текста или после слов целевой раскладки
         while (lo < k && tk[lo].cls == AC_AMB && !(atStart(buf, tk[lo].ps) || context(buf, tk[lo].ps) == last.langT))
             ++lo;
